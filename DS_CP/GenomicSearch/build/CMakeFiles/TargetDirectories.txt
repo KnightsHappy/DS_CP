@@ -1,0 +1,3 @@
+C:/Users/Shambhavi/Desktop/DS_CP/GenomicSearch/build/CMakeFiles/GenomicSearchEngine.dir
+C:/Users/Shambhavi/Desktop/DS_CP/GenomicSearch/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Shambhavi/Desktop/DS_CP/GenomicSearch/build/CMakeFiles/ZERO_CHECK.dir

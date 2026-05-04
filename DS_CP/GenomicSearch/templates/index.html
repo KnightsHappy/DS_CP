@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genomic Pattern Search Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --container-bg: #161b22;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-color: #58a6ff;
+            --accent-hover: #3182ce;
+            --success: #2ea043;
+            --border: #30363d;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 40px 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #58a6ff, #a371f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            transition: transform 0.2s ease;
+        }
+        
+        .search-box:hover {
+            transform: translateY(-2px);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            background-color: var(--accent-color);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+            position: relative;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            max-width: 300px;
+            margin: 0 auto 30px auto;
+            gap: 20px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        .stats-grid.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stat-card {
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
+        
+        #val-longest {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .results {
+            background: var(--container-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 20px;
+            display: none;
+        }
+
+        .results h3 {
+            margin-top: 0;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
+            color: var(--success);
+        }
+
+        .indices {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .index-badge {
+            background: rgba(88, 166, 255, 0.1);
+            color: var(--accent-color);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: monospace;
+            border: 1px solid rgba(88, 166, 255, 0.2);
+        }
+
+        .dna-context {
+            margin-top: 30px;
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        
+        .dna-seq {
+            font-family: monospace;
+            color: var(--text-secondary);
+            word-break: break-all;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        
+        .highlight {
+            background-color: rgba(46, 160, 67, 0.4);
+            color: #ffffff;
+            border-radius: 3px;
+            padding: 0 2px;
+        }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin: auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Genomic Pattern Search</h1>
+    <p class="subtitle">Lightning fast O(m log n) searching using Suffix Arrays</p>
+
+    <div class="search-box">
+        <input type="text" id="pattern" placeholder="Enter DNA Sequence (e.g. ACGT)..." autocomplete="off" spellcheck="false">
+        <button id="search-btn">
+            <span id="btn-text">Search</span>
+            <div class="loader" id="loader"></div>
+        </button>
+    </div>
+
+    <div class="stats-grid" id="stats">
+        <div class="stat-card">
+            <div class="stat-value" id="val-matches">0</div>
+            <div class="stat-label">Matches</div>
+        </div>
+    </div>
+
+    <div class="results" id="results">
+        <h3>Match Occurrences (Indices)</h3>
+        <div class="indices" id="indices-container"></div>
+    </div>
+    
+    <div class="dna-context" id="context-section" style="display:none;">
+        <h3 style="margin-top:0; color:var(--text-secondary); border-bottom: 1px solid var(--border); padding-bottom: 10px;">Genome Viewer (First 1000 bases)</h3>
+        <div class="dna-seq" id="dna-seq"></div>
+    </div>
+</div>
+
+<script>
+    const searchBtn = document.getElementById('search-btn');
+    const patternInput = document.getElementById('pattern');
+    const btnText = document.getElementById('btn-text');
+    const loader = document.getElementById('loader');
+    
+    searchBtn.addEventListener('click', performSearch);
+    patternInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+    });
+
+    async function performSearch() {
+        const pattern = patternInput.value.trim().toUpperCase();
+        if (!pattern) return;
+
+        // UI State
+        btnText.style.display = 'none';
+        loader.style.display = 'block';
+        searchBtn.disabled = true;
+
+        try {
+            const res = await fetch('/api/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pattern })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                // Update Stats
+                document.getElementById('val-matches').textContent = data.matches.toLocaleString();
+                document.getElementById('stats').classList.add('visible');
+
+                // Update Indices
+                const container = document.getElementById('indices-container');
+                container.innerHTML = '';
+                data.indices.forEach(idx => {
+                    const el = document.createElement('span');
+                    el.className = 'index-badge';
+                    el.textContent = idx;
+                    container.appendChild(el);
+                });
+                document.getElementById('results').style.display = 'block';
+                
+                // Update Context Highlighting
+                if (data.dna_context) {
+                    let seq = data.dna_context.substring(0, 1000);
+                    if (pattern.length > 0) {
+                        const regex = new RegExp(pattern, 'g');
+                        seq = seq.replace(regex, `<span class="highlight">$&</span>`);
+                    }
+                    document.getElementById('dna-seq').innerHTML = seq;
+                    document.getElementById('context-section').style.display = 'block';
+                }
+            } else {
+                alert('Error: ' + (data.error || 'Unknown error. Check console.'));
+                console.error(data);
+            }
+        } catch (e) {
+            alert('Network Error: ' + e.message);
+        } finally {
+            btnText.style.display = 'block';
+            loader.style.display = 'none';
+            searchBtn.disabled = false;
+        }
+    }
+</script>
+</body>
+</html>
